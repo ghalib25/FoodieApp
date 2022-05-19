@@ -7,6 +7,7 @@ namespace Models
     {
         public User()
         {
+            Couriers = new HashSet<Courier>();
             Profiles = new HashSet<Profile>();
             UserRoles = new HashSet<UserRole>();
         }
@@ -17,6 +18,7 @@ namespace Models
         public string Username { get; set; } = null!;
         public string Password { get; set; } = null!;
 
+        public virtual ICollection<Courier> Couriers { get; set; }
         public virtual ICollection<Profile> Profiles { get; set; }
         public virtual ICollection<UserRole> UserRoles { get; set; }
     }

@@ -1,68 +1,167 @@
 ﻿using HotChocolate.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using UserService.graphql;
 
 namespace UserService.GraphQL
 {
     public class Mutation
     {
-        public async Task<UserData> RegisterUserAsync(
-            RegisterUser input,
-            [Service] foodieappContext context)
+        public async Task<UserData> RegisterBuyerAsync(
+        RegisterUser input,
+        [Service] foodieappContext context)
         {
-            using var transaction = context.Database.BeginTransaction();
-            var resp = new UserData();
-
-            try
+            var user = context.Users.Where(o => o.Username == input.UserName).FirstOrDefault();
+            if (user != null)
             {
-                var user = context.Users.Where(o => o.Username == input.UserName).FirstOrDefault();
-                if (user != null)
-                {
-                    throw new Exception("Username already exist");
-                }
-                var newUser = new User
-                {
-                    Fullname = input.FullName,
-                    Email = input.Email,
-                    Username = input.UserName,
-                    Password = BCrypt.Net.BCrypt.HashPassword(input.Password) // encrypt password
-                };
-
-                var memberRole = context.Roles.Where(r => r.Name == "MEMBER").FirstOrDefault();
-                if (memberRole == null)
-                    throw new Exception("invalid role");
-
-                // EF
-                var userRole = new UserRole
-                {
-                    RoleId = memberRole.Id,
-                    UserId = newUser.Id
-
-                };
-
-                newUser.UserRoles.Add(userRole);
-                var ret = context.Users.Add(newUser);
-                context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return await Task.FromResult(new UserData
-                {
-                    Id = newUser.Id,
-                    Username = newUser.Username,
-                    Email = newUser.Email,
-                    FullName = newUser.Fullname
-                });
+                return await Task.FromResult(new UserData());
             }
-            catch (Exception ex)
+            var newUser = new User
             {
-                transaction.Rollback();
-            }
+                Fullname = input.FullName,
+                Email = input.Email,
+                Username = input.UserName,
+                Password = BCrypt.Net.BCrypt.HashPassword(input.Password) // encrypt password
+            };
+            var memberRole = context.Roles.Where(m => m.Name == "BUYER").FirstOrDefault();
+            if (memberRole == null)
+                throw new Exception("Invalid Role");
+            var userRole = new UserRole
+            {
+                RoleId = memberRole.Id,
+                UserId = newUser.Id
+            };
+            newUser.UserRoles.Add(userRole);
+            // EF
+            var ret = context.Users.Add(newUser);
+            await context.SaveChangesAsync();
 
-            return await Task.FromResult(resp);
+            return await Task.FromResult(new UserData
+            {
+                Id = newUser.Id,
+                Username = newUser.Username,
+                Email = newUser.Email,
+                FullName = newUser.Fullname
+            });
+        }
+
+        public async Task<UserData> RegisterManagerAsync(
+        RegisterUser input,
+        [Service] foodieappContext context)
+        {
+            var user = context.Users.Where(o => o.Username == input.UserName).FirstOrDefault();
+            if (user != null)
+            {
+                return await Task.FromResult(new UserData());
+            }
+            var newUser = new User
+            {
+                Fullname = input.FullName,
+                Email = input.Email,
+                Username = input.UserName,
+                Password = BCrypt.Net.BCrypt.HashPassword(input.Password) // encrypt password
+            };
+            var memberRole = context.Roles.Where(m => m.Name == "MANAGER").FirstOrDefault();
+            if (memberRole == null)
+                throw new Exception("Invalid Role");
+            var userRole = new UserRole
+            {
+                RoleId = memberRole.Id,
+                UserId = newUser.Id
+            };
+            newUser.UserRoles.Add(userRole);
+            // EF
+            var ret = context.Users.Add(newUser);
+            await context.SaveChangesAsync();
+
+            return await Task.FromResult(new UserData
+            {
+                Id = newUser.Id,
+                Username = newUser.Username,
+                Email = newUser.Email,
+                FullName = newUser.Fullname
+            });
+        }
+
+        public async Task<UserData> RegisterAdminAsync(
+        RegisterUser input,
+        [Service] foodieappContext context)
+        {
+            var user = context.Users.Where(o => o.Username == input.UserName).FirstOrDefault();
+            if (user != null)
+            {
+                return await Task.FromResult(new UserData());
+            }
+            var newUser = new User
+            {
+                Fullname = input.FullName,
+                Email = input.Email,
+                Username = input.UserName,
+                Password = BCrypt.Net.BCrypt.HashPassword(input.Password) // encrypt password
+            };
+            var memberRole = context.Roles.Where(m => m.Name == "ADMIN").FirstOrDefault();
+            if (memberRole == null)
+                throw new Exception("Invalid Role");
+            var userRole = new UserRole
+            {
+                RoleId = memberRole.Id,
+                UserId = newUser.Id
+            };
+            newUser.UserRoles.Add(userRole);
+            // EF
+            var ret = context.Users.Add(newUser);
+            await context.SaveChangesAsync();
+
+            return await Task.FromResult(new UserData
+            {
+                Id = newUser.Id,
+                Username = newUser.Username,
+                Email = newUser.Email,
+                FullName = newUser.Fullname
+            });
+        }
+
+        public async Task<UserData> RegisterCourierAsync(
+        RegisterUser input,
+        [Service] foodieappContext context)
+        {
+            var user = context.Users.Where(o => o.Username == input.UserName).FirstOrDefault();
+            if (user != null)
+            {
+                return await Task.FromResult(new UserData());
+            }
+            var newUser = new User
+            {
+                Fullname = input.FullName,
+                Email = input.Email,
+                Username = input.UserName,
+                Password = BCrypt.Net.BCrypt.HashPassword(input.Password) // encrypt password
+            };
+            var memberRole = context.Roles.Where(m => m.Name == "COURIER").FirstOrDefault();
+            if (memberRole == null)
+                throw new Exception("Invalid Role");
+            var userRole = new UserRole
+            {
+                RoleId = memberRole.Id,
+                UserId = newUser.Id
+            };
+            newUser.UserRoles.Add(userRole);
+            // EF
+            var ret = context.Users.Add(newUser);
+            await context.SaveChangesAsync();
+
+            return await Task.FromResult(new UserData
+            {
+                Id = newUser.Id,
+                Username = newUser.Username,
+                Email = newUser.Email,
+                FullName = newUser.Fullname
+            });
         }
 
         public async Task<UserToken> LoginAsync(
@@ -150,40 +249,104 @@ namespace UserService.GraphQL
         }
 
         [Authorize]
-
-        public async Task<Profile> AddProfileAsync(
-
-            ProfilesInput input,
-
-            [Service] ProductQLContext context)
-
+        public async Task<ProfileData> AddProfileAsync(
+            ProfileData input,
+            ClaimsPrincipal claimsPrincipal,
+            [Service] foodieappContext context)
         {
-
-            var profile = new Profile
-
+            using var transaction = context.Database.BeginTransaction();
+            var userName = claimsPrincipal.Identity.Name;
+            try
             {
+                var user = context.Users.Where(o => o.Username == userName).FirstOrDefault();
+                if (user != null)
+                {
+                    var profile = new Profile
+                    {
+                        UserId = user.Id,
 
-                UserId = input.UserId,
+                        Name = user.Fullname,
 
-                Name = input.Name,
+                        Address = input.Address,
 
-                Address = input.Address,
+                        City = input.City,
 
-                City = input.City,
-
-                Phone = input.Phone
-
-            };
-
-
-
-            var ret = context.Profiles.Add(profile);
-
-            await context.SaveChangesAsync();
-
-            return ret.Entity;
-
+                        Phone = input.Phone
+                    };
+                    context.Profiles.Add(profile);
+                    await context.SaveChangesAsync();
+                }
+                else
+                    throw new Exception("user was not found");
+            }
+            catch (Exception err)
+            {
+                transaction.Rollback();
+            }
+            return input;
         }
 
+        [Authorize]
+        public async Task<CourierData> AddCourierAsync(
+            CourierData input,
+            ClaimsPrincipal claimsPrincipal,
+            [Service] foodieappContext context)
+        {
+            using var transaction = context.Database.BeginTransaction();
+            var userName = claimsPrincipal.Identity.Name;
+            try
+            {
+                var user = context.Users.Where(o => o.Username == userName).FirstOrDefault();
+                if (user != null)
+                {
+                    var courier = new Courier
+                    {
+                        UserId = user.Id,
+                        CourierName = user.Fullname,
+                        PhoneNumber = input.PhoneNumber
+                    };
+                    context.Couriers.Add(courier);
+                    await context.SaveChangesAsync();
+                }
+                else
+                    throw new Exception("user was not found");
+            }
+            catch (Exception err)
+            {
+                transaction.Rollback();
+            }
+            return input;
+        }
+
+        [Authorize(Roles = new[] { "ADMIN" })]
+        public async Task<User> DeleteCourierByIdAsync(
+            int id,
+            [Service] foodieappContext context)
+        {
+            var user = context.Users.Where(o => o.Id == id).FirstOrDefault();
+            if (user != null)
+            {
+                context.Users.Remove(user);
+                await context.SaveChangesAsync();
+            }
+            return await Task.FromResult(user);
+        }
+
+        [Authorize]
+        public async Task<User> ChangePasswordByUserAsync(
+            ChangePassword input,
+            [Service] foodieappContext context)
+        {
+            var user = context.Users.Where(o => o.Id == input.Id).FirstOrDefault();
+            if (user != null)
+            {
+                user.Password = BCrypt.Net.BCrypt.HashPassword(input.Password);
+
+                context.Users.Update(user);
+                await context.SaveChangesAsync();
+            }
+
+            return await Task.FromResult(user);
+        }
     }
 }

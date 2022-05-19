@@ -6,6 +6,16 @@ namespace UserService.GraphQL
 {
     public class Query
     {
+        [Authorize(Roles = new[] { "ADMIN" })]
+        public IQueryable<UserData> GetUsers([Service] foodieappContext context) =>
+            context.Users.Select(p => new UserData()
+            {
+                Id = p.Id,
+                FullName = p.Fullname,
+                Email = p.Email,
+                Username = p.Username
+            });
+
         [Authorize]
         public IQueryable<Profile> GetProfilesbyToken([Service] foodieappContext context, ClaimsPrincipal claimsPrincipal)
         {

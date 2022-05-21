@@ -12,6 +12,8 @@ namespace Models
         public string? Code { get; set; }
         public int? UserId { get; set; }
         public int CourierId { get; set; }
+        public string Longitude { get; set; }
+        public string Latitude { get; set; }
         public List<OrderDetailData> Details { get; set; }
 
     }

@@ -22,26 +22,38 @@ namespace OrderService.GraphQL
                 var courier = context.Couriers.Where(c => c.Id == input.CourierId ).FirstOrDefault();
                 if (user != null)
                 {
-                    var order = new Order
-                    {
-                        Code = Guid.NewGuid().ToString(), // generate random chars using GUID
-                        UserId = user.Id,
-                        CourierId = input.CourierId
-                    };
-
-                    foreach (var item in input.Details)
-                    {
-                        var detail = new OrderDetail
+                    if (courier.Status == true)
                         {
-                            OrderId = order.Id,
-                            FoodId = item.FoodId,
-                            Quantity = item.Quantity
+                        var order = new Order
+                        {
+                            Code = Guid.NewGuid().ToString(), // generate random chars using GUID
+                            UserId = user.Id,
+                            CourierId = input.CourierId,
+                            Latitude = input.Latitude,
+                            Longitude = input.Longitude,
                         };
-                        order.OrderDetails.Add(detail);
+
+                        foreach (var item in input.Details)
+                        {
+                            var detail = new OrderDetail
+                            {
+                                OrderId = order.Id,
+                                FoodId = item.FoodId,
+                                Quantity = item.Quantity
+                            };
+                            order.OrderDetails.Add(detail);
+                        }
+                        context.Orders.Add(order);
+
+                        courier.Status = false;
+                        context.Couriers.Update(courier);
+
+                        context.SaveChanges();
+                        await transaction.CommitAsync();
+
                     }
-                    context.Orders.Add(order);
-                    context.SaveChanges();
-                    await transaction.CommitAsync();
+                    else
+                        throw new Exception("Car Sedang Nengantar Pesanan");
                 }
                 else
                     throw new Exception("user was not found");
@@ -55,22 +67,21 @@ namespace OrderService.GraphQL
         }
 
         [Authorize(Roles = new[] { "MANAGER" })]
-        public async Task<Order> UpdateOrderAsync(
-           OrderData input,
+        public async Task<UpdateOrder> UpdateOrderAsync(
+           UpdateOrder input,
            [Service] foodieappContext context)
         {
             var order = context.Orders.Where(o => o.Id == input.Id).FirstOrDefault();
-            var courier = context.Couriers.Where(c => c.Id == input.CourierId).FirstOrDefault();
             if (order != null)
             {
-                order.Code = input.Code;
-                order.UserId = (int)input.UserId;
+                order.Id = input.Id;
+                order.UserId = input.UserId;
                 order.CourierId = input.CourierId;
 
                 context.Orders.Update(order);
                 await context.SaveChangesAsync();
             }
-            return await Task.FromResult(order);
+            return input;
         }
 
         [Authorize(Roles = new[] { "MANAGER" })]
@@ -83,6 +94,41 @@ namespace OrderService.GraphQL
             {
                 context.Orders.Remove(order);
                 await context.SaveChangesAsync();
+            }
+            return await Task.FromResult(order);
+        }
+
+        [Authorize(Roles = new[] { "COURIER" })]
+        public async Task<Order> AddTrackingAsync(
+            TrackingOrder input,
+            [Service] foodieappContext context)
+        {
+            var order = context.Orders.Where(o => o.Id == input.id).FirstOrDefault();
+            if (order != null)
+            {
+                order.Id = input.id;
+                order.Longitude = input.Longitude;
+                order.Latitude = input.Latitude;
+
+                context.Orders.Update(order);
+                await context.SaveChangesAsync();
+            }
+            return await Task.FromResult(order);
+        }
+
+        public async Task<Order> CompleteOrderAsync(
+           int id,
+           [Service] foodieappContext context)
+        {
+            var order = context.Orders.Where(o => o.Id == id).FirstOrDefault();
+            var kurir = context.Couriers.Where(o => o.Id == order.CourierId).FirstOrDefault();
+            if (order != null)
+            {
+                // EF
+                order.Id = id;
+                kurir.Status = true;
+                context.Couriers.Update(kurir);
+                context.SaveChanges();
             }
             return await Task.FromResult(order);
         }

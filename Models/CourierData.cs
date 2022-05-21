@@ -8,8 +8,9 @@ namespace Models
 {
     public partial class CourierData
     {
-        public int? UserId { get; set; }
-        public string? CourierName { get; set; }
+        public int? Id { get; set; }
+        public int UserId { get; set; }
+        public string CourierName { get; set; }
         public string PhoneNumber { get; set; }
         public bool Status { get; set; }
     }
